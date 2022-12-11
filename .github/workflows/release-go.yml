@@ -19,15 +19,11 @@ on:
         description: Space separated list of globs matching artifacts that should be bundled into the release archives alongside the results from go build
 
 jobs:
-  call_build_and_test:
-    uses: ./.github/workflows/go.yml
-
   # Build artifacts for all major OSs and architectures and upload
   # them to the workflow's artifact storage.
   matrix_build_upload:
     permissions:
       contents: write
-    needs: call_build_and_test
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
