@@ -23,6 +23,11 @@ on:
         default: ''
         type: string
         description: Name of the repository containing the client application for Pact-based contract tests (e.g. eurofurence/reg-attendee-transferclient). If left empty, Pact steps will be skipped, if set, Pact steps will be executed irrespective of the value of pact-setup.
+      pact-client-repo-path:
+        required: false
+        default: ''
+        type: string
+        description: Path to which the pact-client-repo should be checked out. Defaults to the same value as pact-client-repo.
 
 jobs:
   build:
@@ -70,17 +75,17 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: ${{ inputs.pact-client-repo }}
-          path: ${{ inputs.pact-client-repo }}
+          path: ${{ (inputs.pact-client-repo-path != '' && inputs.pact-client-repo-path) || inputs.pact-client-repo }}
 
       - name: Build pact-client-repo
         if: ${{ inputs.pact-client-repo != '' }}
+        working-directory: ${{ (inputs.pact-client-repo-path != '' && inputs.pact-client-repo-path) || inputs.pact-client-repo }}
         run: go build -v ./...
-        working-directory: ${{ inputs.pact-client-repo }}
 
       - name: Test pact-client-repo
         if: ${{ inputs.pact-client-repo != '' }}
+        working-directory: ${{ (inputs.pact-client-repo-path != '' && inputs.pact-client-repo-path) || inputs.pact-client-repo }}
         run: go test -v ./...
-        working-directory: ${{ inputs.pact-client-repo }}
 
       - name: Test
         working-directory: ${{ inputs.base-directory }}
