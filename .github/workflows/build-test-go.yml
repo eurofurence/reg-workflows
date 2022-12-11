@@ -1,0 +1,87 @@
+name: Build & Test (Go)
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        required: false
+        default: '>=1.19'
+        type: string
+        description: Version of Go to be used for builds
+      base-directory:
+        required: false
+        default: '.'
+        type: string
+        description: Base directory in which to perform checkout, build and tests. Mostly relevant for workflows using Pact-based contract tests.
+      pact-setup:
+        required: false
+        default: false
+        type: boolean
+        description: Run steps to setup Pact CLI. Defaults to true if pact-client-repo is set, otherwise defaults to false.
+      pact-client-repo:
+        required: false
+        default: ''
+        type: string
+        description: Name of the repository containing the client application for Pact-based contract tests (e.g. eurofurence/reg-attendee-transferclient). If left empty, Pact steps will be skipped, if set, Pact steps will be executed irrespective of the value of pact-setup.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: ${{ inputs.base-directory }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ inputs.go-version }}
+          check-latest: true
+
+      - name: Set up pact-foundation/pact-ruby-standalone
+        if: ${{ inputs.pact-client-repo != '' || inputs.pact-setup }}
+        shell: bash
+        run: >
+          curl -L https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh -o ./install-pact.sh &&
+          cat ./install-pact.sh &&
+          chmod u+x ./install-pact.sh &&
+          ./install-pact.sh &&
+          rm ./install-pact.sh &&
+          ls -al ./pact/bin &&
+          echo "$(pwd)/pact/bin" >> $GITHUB_PATH
+
+      - name: Print pact CLI versions
+        if: ${{ inputs.pact-client-repo != '' || inputs.pact-setup }}
+        shell: bash
+        run: |-
+          echo "PATH=$PATH
+          pact-broker: $(pact-broker version)
+          pact-message: $(pact-message version)
+          pact-mock-service: $(pact-mock-service version)
+          pact-provider-verifier: $(pact-provider-verifier version)
+          pact-stub-service: $(pact-stub-service version)"
+
+      - name: Build
+        working-directory: ${{ inputs.base-directory }}
+        run: go build -v ./...
+
+      - name: Checkout pact-client-repo for contract tests
+        if: ${{ inputs.pact-client-repo != '' }}
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.pact-client-repo }}
+          path: ${{ inputs.pact-client-repo }}
+
+      - name: Build pact-client-repo
+        if: ${{ inputs.pact-client-repo != '' }}
+        run: go build -v ./...
+        working-directory: ${{ inputs.pact-client-repo }}
+
+      - name: Test pact-client-repo
+        if: ${{ inputs.pact-client-repo != '' }}
+        run: go test -v ./...
+        working-directory: ${{ inputs.pact-client-repo }}
+
+      - name: Test
+        working-directory: ${{ inputs.base-directory }}
+        run: go test -v ./...
