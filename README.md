@@ -19,7 +19,7 @@ jobs:
   call_build_test:
     permissions:
       contents: read
-    uses: eurofurence/reg-workflows/workflows/build-test-go.yml@main
+    uses: eurofurence/reg-workflows/.github/workflows/build-test-go.yml@main
     with:
       base-directory: ./app
 ```
