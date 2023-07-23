@@ -26,7 +26,9 @@ jobs:
 
 **IMPORTANT**: For security reasons, please remember to appropriately limit the permissions of the 
 auto-provided `secrets.GITHUB_TOKEN`. If you do not specify `permissions:`, the token will have very
-broad permissions. If specified, all other permissions are turned off.
+broad permissions. If specified, all permissions that are not explicitly specified will default to `none` 
+(see [Assigning permissions to jobs](https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs) 
+for details).
 
 ## Open Issues and Ideas
 

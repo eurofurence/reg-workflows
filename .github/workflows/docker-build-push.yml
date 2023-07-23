@@ -39,7 +39,7 @@ on:
     secrets:
       registry-pass:
         required: true
-        description: Token to use for docker registry login. If ghcr, should usually be set to DOLLAR{{ secrets.GITHUB_TOKEN }}, and do remember to limit the token permissions to package write and content read and nothing else.
+        description: Token to use for docker registry login. If GHCR, should usually be set to DOLLAR{{ secrets.GITHUB_TOKEN }}, and do remember to limit the token permissions to package write and content read and nothing else.
 
 jobs:
   build-and-push-image:
