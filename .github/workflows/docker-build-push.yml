@@ -36,6 +36,16 @@ on:
         required: true
         type: string
         description: Username to use for docker registry login. If ghrc, you probably want DOLLAR{{ github.actor }}.
+      dockerfile:
+        required: false
+        default: 'Dockerfile'
+        type: string
+        description: Dockerfile to use when calling docker build.
+      build-context:
+        required: false
+        default: '.'
+        type: string
+        description: Path to build context for docker build command.
     secrets:
       registry-pass:
         required: true
@@ -88,7 +98,8 @@ jobs:
           --label org.opencontainers.image.revision="$COMMIT_HASH"
           $TAG_ARGS
           --pull
-          . &&
+          -f ${{ inputs.dockerfile }}
+          ${{ inputs.build-context }} &&
           docker push -a "$REGISTRY/$IMAGE_NAME"
         shell: bash
         env:
